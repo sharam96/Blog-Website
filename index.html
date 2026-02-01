@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Blogger</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="https://img.icons8.com/color/48/000000/blogger.png">
+</head>
+<body>
+  <nav class="navbar">
+    <h1>My Blog</h1>
+    <div class="hamburger" id="hamburger">☰</div>
+    <div class="nav-buttons" id="navButtons">
+      <button id="createBtn">
+        <i class="fas fa-plus"></i> Create Post
+      </button>
+      <button id="deleteAllBtn">
+        <i class="fas fa-trash"></i> Delete All
+      </button>
+    </div>
+  </nav>
+
+  <div id="counter">Total Blogs: 0</div>
+
+  <div id="popup" class="popup">
+    <div class="popup-content">
+      <div class="popup-header">
+        <h2>Create New Post</h2>
+        <button class="close-btn" id="closePopup">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <input type="text" id="titleInput" placeholder="Enter Title" />
+      <textarea id="contentInput" placeholder="Write your blog here..."></textarea>
+      <button id="publishBtn">
+        <i class="fas fa-paper-plane"></i> Publish Post
+      </button>
+    </div>
+  </div>
+
+  <main id="blogContainer">
+    <!-- Blog posts will be dynamically added here -->
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
