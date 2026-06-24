@@ -4,45 +4,87 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Blogger</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="./icons8-blogger-48.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="https://img.icons8.com/color/48/000000/blogger.png">
 </head>
 <body>
   <nav class="navbar">
-    <h1>My Blog</h1>
-    <div class="hamburger" id="hamburger">☰</div>
+    <div class="nav-left">
+      <div class="logo">
+        <i class="fas fa-blog"></i>
+        <h1>My Blog</h1>
+      </div>
+    </div>
+    <div class="hamburger" id="hamburger">
+      <div class="hamburger-line"></div>
+      <div class="hamburger-line"></div>
+      <div class="hamburger-line"></div>
+    </div>
     <div class="nav-buttons" id="navButtons">
-      <button id="createBtn">
-        <i class="fas fa-plus"></i> Create Post
+      <button id="createBtn" class="btn-primary">
+        <i class="fas fa-plus-circle"></i>
+        <span>Create Post</span>
       </button>
-      <button id="deleteAllBtn">
-        <i class="fas fa-trash"></i> Delete All
+      <button id="deleteAllBtn" class="btn-danger">
+        <i class="fas fa-trash-alt"></i>
+        <span>Delete All</span>
       </button>
     </div>
   </nav>
 
-  <div id="counter">Total Blogs: 0</div>
-
-  <div id="popup" class="popup">
-    <div class="popup-content">
-      <div class="popup-header">
-        <h2>Create New Post</h2>
-        <button class="close-btn" id="closePopup">
-          <i class="fas fa-times"></i>
-        </button>
+  <div class="container">
+    <div class="counter-card">
+      <div class="counter-icon">
+        <i class="fas fa-chart-line"></i>
       </div>
-      <input type="text" id="titleInput" placeholder="Enter Title" />
-      <textarea id="contentInput" placeholder="Write your blog here..."></textarea>
-      <button id="publishBtn">
-        <i class="fas fa-paper-plane"></i> Publish Post
-      </button>
+      <div class="counter-content">
+        <h3>Blog Statistics</h3>
+        <div id="counter">Total Blogs: <span>0</span></div>
+      </div>
     </div>
+
+    <div id="popup" class="popup">
+      <div class="popup-content">
+        <div class="popup-header">
+          <h2><i class="fas fa-edit"></i> Create New Post</h2>
+          <button id="closePopup" class="close-btn">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="input-group">
+          <label for="titleInput"><i class="fas fa-heading"></i> Title</label>
+          <input type="text" id="titleInput" placeholder="Enter an engaging title..." />
+        </div>
+        <div class="input-group">
+          <label for="contentInput"><i class="fas fa-paragraph"></i> Content</label>
+          <textarea id="contentInput" placeholder="Write your amazing blog content here..."></textarea>
+        </div>
+        <div class="popup-actions">
+          <button id="cancelBtn" class="btn-secondary">Cancel</button>
+          <button id="publishBtn" class="btn-success">
+            <i class="fas fa-paper-plane"></i>
+            Publish
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <main id="blogContainer">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">
+          <i class="fas fa-feather-alt"></i>
+        </div>
+        <h3>No blog posts yet</h3>
+        <p>Start writing your first blog post by clicking the "Create Post" button in the navigation bar.</p>
+      
+      </div>
+    </main>
   </div>
 
-  <main id="blogContainer">
-    <!-- Blog posts will be dynamically added here -->
-  </main>
+  <footer class="footer">
+    <p>© 2026 My Blog. Made with <i class="fas fa-heart"></i> for passionate writers.</p>
+  </footer>
 
   <script src="script.js"></script>
 </body>

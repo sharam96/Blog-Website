@@ -1,337 +1,365 @@
-document.addEventListener('DOMContentLoaded', function() {
-  // DOM Elements (using your variable names)
-  const createBtn = document.getElementById('createBtn');
-  const popup = document.getElementById('popup');
-  const publishBtn = document.getElementById('publishBtn');
-  const blogContainer = document.getElementById('blogContainer');
-  const titleInput = document.getElementById('titleInput');
-  const contentInput = document.getElementById('contentInput');
-  const counter = document.getElementById('counter');
-  const deleteAllBtn = document.getElementById('deleteAllBtn');
-  const hamburger = document.querySelector('.hamburger');
-  const navButtons = document.querySelector('.nav-buttons');
-  const closePopupBtn = document.getElementById('closePopup');
+// DOM Elements
+const createBtn = document.getElementById('createBtn');
+const popup = document.getElementById('popup');
+const publishBtn = document.getElementById('publishBtn');
+const blogContainer = document.getElementById('blogContainer');
+const titleInput = document.getElementById('titleInput');
+const contentInput = document.getElementById('contentInput');
+const counter = document.getElementById('counter');
+const deleteAllBtn = document.getElementById('deleteAllBtn');
+const hamburger = document.getElementById('hamburger');
+const navButtons = document.getElementById('navButtons');
+const closePopup = document.getElementById('closePopup');
+const cancelBtn = document.getElementById('cancelBtn');
+const emptyState = document.getElementById('emptyState');
+// Removed: const createFirstBtn = document.getElementById('createFirstBtn');
 
-  let blogCount = 0;
-  let editMode = false;
-  let currentEditPost = null;
+let blogCount = 0;
 
-  // Initialize
-  fetchPosts();
+// Show popup when Create button is clicked (navbar button only)
+createBtn.addEventListener('click', () => {
+  popup.style.display = 'flex';
+  titleInput.focus();
+  // Close hamburger menu if open
+  closeHamburgerMenu();
+});
 
-  // Event Listeners
-  createBtn.addEventListener('click', () => {
-    popup.classList.add('active');
-    titleInput.focus();
-  });
+// Removed: createFirstBtn event listener since the button was removed
 
-  closePopupBtn.addEventListener('click', () => {
-    popup.classList.remove('active');
+// Close popup with close button
+closePopup.addEventListener('click', () => {
+  popup.style.display = 'none';
+  resetForm();
+});
+
+// Close popup with cancel button
+cancelBtn.addEventListener('click', () => {
+  popup.style.display = 'none';
+  resetForm();
+});
+
+// Close popup when clicking outside
+popup.addEventListener('click', (e) => {
+  if (e.target === popup) {
+    popup.style.display = 'none';
     resetForm();
-  });
+  }
+});
 
-  // Close popup when clicking outside
-  popup.addEventListener('click', (e) => {
-    if (e.target === popup) {
-      popup.classList.remove('active');
-      resetForm();
-    }
-  });
+// Close popup with Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && popup.style.display === 'flex') {
+    popup.style.display = 'none';
+    resetForm();
+  }
+});
 
-  // Close popup with Escape key
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && popup.classList.contains('active')) {
-      popup.classList.remove('active');
-      resetForm();
-    }
-  });
+// Reset form function
+function resetForm() {
+  titleInput.value = '';
+  contentInput.value = '';
+}
 
-  // Publish blog on Publish button click
-  publishBtn.addEventListener('click', async () => {
-    const title = titleInput.value.trim();
-    const content = contentInput.value.trim();
+// Publish blog on Publish button click
+publishBtn.addEventListener('click', async () => {
+  const title = titleInput.value.trim();
+  const content = contentInput.value.trim();
 
-    if (title && content) {
-      try {
-        // Show loading state
-        const originalText = publishBtn.innerHTML;
-        publishBtn.innerHTML = '<div class="loading"></div> Publishing...';
-        publishBtn.disabled = true;
-
-        if (editMode && currentEditPost) {
-          // Update existing post (you can add your API call here)
-          await updatePostInBackend(currentEditPost.id, title, content);
-          
-          // Update in DOM
-          const postElement = document.querySelector(`[data-id="${currentEditPost.id}"]`);
-          if (postElement) {
-            postElement.querySelector('h3').textContent = title;
-            postElement.querySelector('p').textContent = content;
-            postElement.querySelector('.post-meta').innerHTML = `
-              <i class="far fa-calendar"></i>
-              <span>Updated: ${new Date().toLocaleString('en-IN', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-              })}</span>
-            `;
-          }
-          
-          showToast('Post updated successfully!', 'success');
-        } else {
-          // Send data to backend
-          const res = await fetch('/create-post', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, content })
-          });
-
-          const data = await res.json();
-
-          if (res.ok) {
-            // Add post to DOM
-            addPostToDOM(data.post.title, data.post.content, data.post.created_at, data.post.id);
-            showToast('Post published successfully!', 'success');
-          } else {
-            showToast(data.message || 'Error creating post', 'error');
-            return;
-          }
-        }
-
-        // Reset form and close popup
-        titleInput.value = '';
-        contentInput.value = '';
-        popup.classList.remove('active');
-        resetForm();
-
-      } catch (err) {
-        console.error('Fetch error:', err);
-        showToast('Server error', 'error');
-      } finally {
-        // Reset button state
-        publishBtn.innerHTML = editMode ? 
-          '<i class="fas fa-save"></i> Update Post' : 
-          '<i class="fas fa-paper-plane"></i> Publish Post';
-        publishBtn.disabled = false;
-      }
-    } else {
-      showToast('Please fill in both title and content!', 'error');
-    }
-  });
-
-  // Fetch posts from backend on page load
-  async function fetchPosts() {
+  if (title && content) {
     try {
-      const res = await fetch('/posts');
-      const posts = await res.json();
-      blogCount = 0;
-      blogContainer.innerHTML = '';
-      
-      if (posts.length === 0) {
-        showEmptyState();
-        return;
-      }
-      
-      posts.forEach(post => {
-        addPostToDOM(post.title, post.content, post.created_at, post.id);
+      // Send data to backend
+      const res = await fetch('/create-post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, content })
       });
-    } catch (err) {
-      console.error('Error fetching posts:', err);
-      showToast('Failed to load posts', 'error');
-      showEmptyState();
-    }
-  }
 
-  // Helper to add post to DOM
-  function addPostToDOM(title, content, createdAt, id = null) {
-    const postId = id || Date.now().toString();
-    
-    const formattedDate = new Date(createdAt).toLocaleString('en-IN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+      const data = await res.json();
 
-    const post = document.createElement('div');
-    post.classList.add('blog-post');
-    post.setAttribute('data-id', postId);
-
-    post.innerHTML = `
-      <h3>${title}</h3>
-      <div class="post-meta">
-        <i class="far fa-calendar"></i>
-        <span>${formattedDate}</span>
-      </div>
-      <p>${content}</p>
-      <div class="post-actions">
-        <button class="edit">
-          <i class="fas fa-edit"></i> Edit
-        </button>
-        <button class="delete">
-          <i class="fas fa-trash"></i> Delete
-        </button>
-      </div>
-    `;
-
-    blogContainer.insertBefore(post, blogContainer.firstChild);
-    blogCount++;
-    updateCounter();
-
-    // Remove empty state if present
-    const emptyState = document.querySelector('.empty-state');
-    if (emptyState) emptyState.remove();
-
-    // Edit functionality
-    post.querySelector('.edit').addEventListener('click', () => {
-      titleInput.value = title;
-      contentInput.value = content;
-      editMode = true;
-      currentEditPost = { id: postId, title, content };
-      publishBtn.innerHTML = '<i class="fas fa-save"></i> Update Post';
-      document.querySelector('.popup-header h2').textContent = 'Edit Post';
-      popup.classList.add('active');
-      titleInput.focus();
-    });
-
-    // Delete functionality
-    post.querySelector('.delete').addEventListener('click', async () => {
-      if (confirm('Are you sure you want to delete this post?')) {
-        try {
-          // Call your delete API if needed
-          // await fetch(`/delete-post/${postId}`, { method: 'DELETE' });
-          
-          post.remove();
-          blogCount--;
-          updateCounter();
-          showToast('Post deleted successfully!', 'success');
-          
-          if (blogCount === 0) {
-            showEmptyState();
-          }
-        } catch (err) {
-          console.error('Delete error:', err);
-          showToast('Failed to delete post', 'error');
-        }
-      }
-    });
-  }
-
-  // Delete all blogs
-  deleteAllBtn.addEventListener('click', async () => {
-    if (blogCount === 0) {
-      showToast('No posts to delete!', 'info');
-      return;
-    }
-
-    if (confirm('Are you sure you want to delete ALL blog posts?')) {
-      try {
-        const res = await fetch('/delete-all', { method: 'DELETE' });
-        const data = await res.json();
+      if (res.ok) {
+        // Add post to DOM
+        addPostToDOM(data.post.title, data.post.content, data.post.created_at);
+        resetForm();
+        popup.style.display = 'none';
         
-        if (res.ok) {
+        // Hide empty state
+        if (emptyState.style.display !== 'none') {
+          emptyState.style.display = 'none';
+        }
+        
+        showAlert('Blog post published successfully!', 'success');
+      } else {
+        showAlert(data.message || 'Error creating post', 'error');
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
+      showAlert('Server error. Please try again.', 'error');
+    }
+  } else {
+    showAlert('Please fill out both fields.', 'warning');
+  }
+});
+
+// Fetch posts from backend on page load
+window.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const res = await fetch('/posts');
+    const posts = await res.json();
+    blogCount = 0;
+    
+    if (posts.length > 0) {
+      emptyState.style.display = 'none';
+      posts.forEach(post => {
+        addPostToDOM(post.title, post.content, post.created_at);
+      });
+    } else {
+      emptyState.style.display = 'block';
+    }
+  } catch (err) {
+    console.error('Error fetching posts:', err);
+    emptyState.style.display = 'block';
+  }
+});
+
+// Helper to add post to DOM
+function addPostToDOM(title, content, createdAt) {
+  const post = document.createElement('div');
+  post.classList.add('blog-post');
+
+  const formattedDate = new Date(createdAt).toLocaleString('en-IN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+
+  post.innerHTML = `
+    <h3>${title}</h3>
+    <p>${content}</p>
+    <small><i class="far fa-clock"></i> ${formattedDate}</small>
+    <div class="post-actions">
+      <button class="edit">
+        <i class="fas fa-edit"></i>
+        Edit
+      </button>
+      <button class="delete">
+        <i class="fas fa-trash-alt"></i>
+        Delete
+      </button>
+    </div>
+  `;
+
+  blogContainer.appendChild(post);
+  blogCount++;
+  updateCounter();
+
+  // Edit post
+  post.querySelector('.edit').addEventListener('click', () => {
+    titleInput.value = title;
+    contentInput.value = content;
+    popup.style.display = 'flex';
+    post.remove();
+    blogCount--;
+    updateCounter();
+  });
+
+  // Delete post
+  post.querySelector('.delete').addEventListener('click', () => {
+    if (confirm('Are you sure you want to delete this blog post?')) {
+      post.style.animation = 'fadeOut 0.3s ease';
+      setTimeout(() => {
+        post.remove();
+        blogCount--;
+        updateCounter();
+        
+        // Show empty state if no posts
+        if (blogCount === 0) {
+          emptyState.style.display = 'block';
+        }
+        
+        showAlert('Blog post deleted.', 'info');
+      }, 300);
+    }
+  });
+}
+
+// Delete all blogs
+deleteAllBtn.addEventListener('click', async () => {
+  if (blogCount === 0) {
+    showAlert('No blogs to delete.', 'info');
+    return;
+  }
+  
+  if (confirm('Are you sure you want to delete ALL blog posts? This action cannot be undone.')) {
+    try {
+      const res = await fetch('/delete-all', { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok) {
+        // Fade out all posts
+        const posts = document.querySelectorAll('.blog-post');
+        posts.forEach(post => {
+          post.style.animation = 'fadeOut 0.5s ease';
+        });
+        
+        setTimeout(() => {
           blogContainer.innerHTML = '';
           blogCount = 0;
           updateCounter();
-          showEmptyState();
-          showToast('All posts deleted!', 'success');
-        } else {
-          showToast(data.message || 'Failed to delete all', 'error');
-        }
-      } catch (err) {
-        console.error(err);
-        showToast('Server error', 'error');
+          emptyState.style.display = 'block';
+          showAlert('All blog posts have been deleted.', 'success');
+        }, 500);
+      } else {
+        showAlert(data.message || 'Failed to delete all posts', 'error');
       }
+    } catch (err) {
+      console.error(err);
+      showAlert('Server error. Please try again.', 'error');
     }
-  });
-
-  // Update blog counter display
-  function updateCounter() {
-    counter.textContent = `Total Blogs: ${blogCount}`;
-  }
-
-  // Toggle nav menu (mobile)
-  hamburger.addEventListener('click', () => {
-    navButtons.classList.toggle('show');
-  });
-
-  // Close mobile menu when clicking outside
-  document.addEventListener('click', (e) => {
-    if (window.innerWidth <= 768 && 
-        !hamburger.contains(e.target) && 
-        !navButtons.contains(e.target) && 
-        navButtons.classList.contains('show')) {
-      navButtons.classList.remove('show');
-    }
-  });
-
-  // Helper functions
-  function resetForm() {
-    titleInput.value = '';
-    contentInput.value = '';
-    editMode = false;
-    currentEditPost = null;
-    publishBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publish Post';
-    document.querySelector('.popup-header h2').textContent = 'Create New Post';
-    publishBtn.disabled = false;
-  }
-
-  function showEmptyState() {
-    blogContainer.innerHTML = `
-      <div class="empty-state">
-        <i class="fas fa-blog"></i>
-        <h3>No Blog Posts Yet</h3>
-        <p>Click "Create Post" to write your first blog post!</p>
-      </div>
-    `;
-  }
-
-  function showToast(message, type = 'success') {
-    // Remove existing toast
-    const existingToast = document.querySelector('.toast');
-    if (existingToast) {
-      existingToast.remove();
-    }
-
-    // Create new toast
-    const toast = document.createElement('div');
-    toast.className = `toast ${type === 'error' ? 'error' : ''}`;
-    toast.innerHTML = `
-      <i class="fas ${type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i>
-      <p>${message}</p>
-    `;
-
-    document.body.appendChild(toast);
-
-    // Show toast with animation
-    setTimeout(() => {
-      toast.classList.add('show');
-    }, 10);
-
-    // Hide toast after 3 seconds
-    setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => {
-        if (toast.parentNode) {
-          toast.remove();
-        }
-      }, 400);
-    }, 3000);
-  }
-
-  // Mock update function (replace with your actual API call)
-  async function updatePostInBackend(id, title, content) {
-    // Replace this with your actual update API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(`Updating post ${id}: ${title}`);
-        resolve();
-      }, 500);
-    });
   }
 });
+
+// Update blog counter display
+function updateCounter() {
+  const counterSpan = counter.querySelector('span');
+  if (counterSpan) {
+    counterSpan.textContent = blogCount;
+  } else {
+    counter.innerHTML = `Total Blogs: <span>${blogCount}</span>`;
+  }
+}
+
+// Toggle nav menu (mobile) - FIXED
+hamburger.addEventListener('click', (e) => {
+  e.stopPropagation(); // Prevent event bubbling
+  navButtons.classList.toggle('show');
+  hamburger.classList.toggle('active');
+});
+
+// Close hamburger menu function
+function closeHamburgerMenu() {
+  navButtons.classList.remove('show');
+  hamburger.classList.remove('active');
+}
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', (e) => {
+  // Check if click is outside hamburger and nav buttons
+  if (!hamburger.contains(e.target) && !navButtons.contains(e.target)) {
+    closeHamburgerMenu();
+  }
+});
+
+// Close mobile menu when clicking on a nav button inside
+navButtons.addEventListener('click', (e) => {
+  // If a button is clicked, close the menu after a short delay
+  if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+    setTimeout(closeHamburgerMenu, 300);
+  }
+});
+
+// Close mobile menu on window resize (if resized to larger screen)
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768) {
+    closeHamburgerMenu();
+  }
+});
+
+// Alert function
+function showAlert(message, type) {
+  // Remove existing alert
+  const existingAlert = document.querySelector('.custom-alert');
+  if (existingAlert) existingAlert.remove();
+  
+  // Create alert
+  const alert = document.createElement('div');
+  alert.className = `custom-alert ${type}`;
+  alert.innerHTML = `
+    <span>${message}</span>
+    <button class="alert-close"><i class="fas fa-times"></i></button>
+  `;
+  
+  document.body.appendChild(alert);
+  
+  // Show alert
+  setTimeout(() => alert.classList.add('show'), 10);
+  
+  // Close alert on button click
+  alert.querySelector('.alert-close').addEventListener('click', () => {
+    alert.classList.remove('show');
+    setTimeout(() => alert.remove(), 300);
+  });
+  
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (alert.parentNode) {
+      alert.classList.remove('show');
+      setTimeout(() => alert.remove(), 300);
+    }
+  }, 5000);
+}
+
+// Add CSS for alerts
+const alertStyles = document.createElement('style');
+alertStyles.textContent = `
+  .custom-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 10px;
+    color: white;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    max-width: 350px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+    z-index: 3000;
+  }
+  
+  .custom-alert.show {
+    transform: translateX(0);
+  }
+  
+  .custom-alert.error {
+    background: linear-gradient(to right, #f72585, #ff4b2b);
+    border-left: 5px solid #ff4b2b;
+  }
+  
+  .custom-alert.success {
+    background: linear-gradient(to right, #00b09b, #96c93d);
+    border-left: 5px solid #96c93d;
+  }
+  
+  .custom-alert.warning {
+    background: linear-gradient(to right, #f8961e, #f9c74f);
+    border-left: 5px solid #f9c74f;
+  }
+  
+  .custom-alert.info {
+    background: linear-gradient(to right, #4361ee, #4cc9f0);
+    border-left: 5px solid #4cc9f0;
+  }
+  
+  .alert-close {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  
+  @keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(20px); }
+  }
+`;
+document.head.appendChild(alertStyles);
+
+// Initialize counter on load
+updateCounter();
